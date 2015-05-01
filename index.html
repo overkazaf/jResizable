@@ -11,9 +11,11 @@
 		.ui-panel-header{
 			cursor:move;
 			z-index:1;position: absolute;left: 0;top: 0;width:100%;
-			height:32px;font-size:12px;line-height: 32px;background-color: #99ccff;text-align: center;
+			height:32px;font-size:12px;line-height: 32px;background-color: #09F;text-align: center;color:#FFF;
+			opacity: 0.7;
 		}
-		.ui-panel-body{background-color:#e5e5e5;position:relative;height: 100%;width:100%;}
+		.ui-panel:hover .ui-panel-header{opacity: 1;}
+		.ui-panel-body{background-color:#2b2b2b;position:relative;height: 100%;width:100%;opacity: 0.9;}
 		.ui-ctrl-e{
 			position: absolute;right:-5px;top:0;width:10px;
 			height:100%;background-color: transparent;
@@ -38,23 +40,53 @@
 </head>
 <body>
 	<div class="container">
-		<div id="test" class="ui-panel">
-			<div class="ui-panel-header">Control Panel</div>
-			<div class="ui-panel-body">
-			</div>
-		</div>
+		
 	</div>
 </body>
 <script type="text/javascript">
+	function buildPanel (context, panelId, callback) {
+		context = context || document.body;
+		var fragment = document.createDocumentFragment();
+		var oPanel = document.createElement('div');
+		var oHeader = document.createElement('div');
+		var oBody = document.createElement('div');
+
+		oPanel.className = 'ui-panel';
+		oPanel.id = panelId;
+		oHeader.className = 'ui-panel-header';
+		oBody.className = 'ui-panel-body';
+		oHeader.innerHTML = 'Panel title';
+
+		oPanel.appendChild(oHeader);
+		oPanel.appendChild(oBody);
+		fragment.appendChild(oPanel);
+
+		if (callback && typeof callback == 'function') {
+			context.appendChild(fragment);
+			callback();
+		} else {
+			return context.appendChild(fragment);
+		}
+	}
+	$globalIndex = 0;
 	window.onload = function (){
-		var r = new Resizable('init', {
-			panelId : 'test',
-			minx : 120,
-			miny : 60,
-			draggable : true,
-			minDx : 10,
-			minDy : 10
-		});
+		var panelList = [];
+		var ctx = document.getElementsByClassName('container')[0];
+		for (var i=1; i<10; i++) {
+			var panelId = 'test'+ i;
+			buildPanel(ctx, panelId, function (){
+				var r = new Resizable('init', {
+					panelId : panelId,
+					minx : 120,
+					miny : 60,
+					draggable : true,
+					minDx : 10,
+					minDy : 10
+				});
+				r.instance.style.zIndex = ++$globalIndex;
+				panelList[panelList.length] = r;
+			});
+		}
 	}
 
 	function Resizable(method, options, fn){
@@ -112,11 +144,12 @@
 			var minx = this.minx;
 			var miny = this.miny;
 
-
-
 			// Resizable & Draggable
 			header.onmousedown = ctrl.SE.onmousedown = ctrl.S.onmousedown = ctrl.E.onmousedown = function (ev){
 				ev = fixEvent(ev);
+				if (obj.style.zIndex < $globalIndex){
+					obj.style.zIndex = ++$globalIndex;
+				}
 				var pOL = 0,
 					pOT = 0,
 					p = obj;
